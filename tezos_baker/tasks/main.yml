@@ -1,0 +1,73 @@
+---
+
+# tasks file for roles/tezos_baker
+
+- name: Tezos baker container
+  ignore_errors: yes
+  docker_container:
+    name: "{{ network }}_baker_{{ item }}"
+    image: "{{ tezos_docker_image }}"
+    state: started
+    recreate: yes
+    restart: yes
+    restart_policy: always
+    pull: yes
+    networks:
+      - name: "{{ network_name }}"
+    entrypoint: >
+      tezos-baker-{{ item }} --chain main --base-dir "/data/client"
+      --addr "{{ network }}_node" --port "{{ NODE_RPC_PORT }}"
+      run with local node /data/node
+    volumes:
+      - "/data/{{ node_data_dir }}:/data/node:ro"
+      - "/data/{{ client_data_dir }}:/data/client"
+  with_items: "{{ economic_protocols }}"
+
+- name: Tezos endorser container
+  ignore_errors: yes
+  docker_container:
+    name: "{{ network }}_endorser_{{ item }}"
+    image: "{{ tezos_docker_image }}"
+    state: started
+    recreate: yes
+    restart: yes
+    restart_policy: always
+    pull: yes
+    networks:
+      - name: "{{ network_name }}"
+    env:
+      NODE_HOST: "{{ network }}_node"
+      NODE_PORT: "8732"
+      PROTOCOL: "{{ item }}"
+    entrypoint: >
+      tezos-endorser-{{ item }}  --chain main --base-dir "/data/client"
+      --addr "{{ network }}_node" --port "{{ NODE_RPC_PORT }}"
+      run
+    volumes:
+      - "/data/{{ node_data_dir }}:/data/node:ro"
+      - "/data/{{ client_data_dir }}:/data/client"
+  with_items: "{{ economic_protocols }}"
+
+- name: Tezos accuser container
+  ignore_errors: yes
+  docker_container:
+    name: "{{ network }}_accuser_{{ item }}"
+    image: "{{ tezos_docker_image }}"
+    state: started
+    recreate: yes
+    restart: yes
+    restart_policy: always
+    pull: yes
+    networks:
+      - name: "{{ network_name }}"
+    env:
+      NODE_PORT: "8732"
+      PROTOCOL: "{{ item }}"
+    entrypoint: >
+      tezos-accuser-{{ item }} --chain main --base-dir "/data/client"
+      --addr "{{ network }}_node" --port "{{ NODE_RPC_PORT }}"
+      run
+    volumes:
+      - "/data/{{ node_data_dir }}:/data/node:ro"
+      - "/data/{{ client_data_dir }}:/data/client"
+  with_items: "{{ economic_protocols }}"

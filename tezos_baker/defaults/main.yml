@@ -1,0 +1,4 @@
+---
+# defaults file for roles/tezos_baker
+
+NODE_RPC_PORT: 8732

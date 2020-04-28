@@ -1,0 +1,12 @@
+---
+# defaults file for roles/tezos_node
+#
+#
+#
+
+tezos_node_config_template: tezos_role_default_config.json.j2
+tezos_node_version_template: tezos_role_default_version.json.j2
+tezos_storage_version: 0.0.4
+node_data_dir: "{{ network }}_node"
+client_data_dir: "{{ network }}_client"
+history_mode: full
